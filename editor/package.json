@@ -1,0 +1,36 @@
+{
+  "name": "surveyjs-editor",
+  "version": "1.0.1",
+  "description": "Use surveyjs Editor to create or edit JSON for surveyjs library.",
+  "keywords": [
+    "Survey",
+    "JavaScript",
+    "Editor",
+    "surveyjs"
+  ],
+  "homepage": "http://editor.surveyjs.io",
+  "license": "http://editor.surveyjs.io/license.html",
+  "files": [
+    "surveyeditor.css",
+    "surveyeditor.js",
+    "surveyeditor.d.ts",
+    "surveyeditor.min.js"
+  ],
+  "main": "surveyeditor.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/surveyjs/editor.git"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "typings": "surveyeditor.d.ts",
+  "dependencies": {
+    "survey-knockout": "^1.0.1",
+    "knockout": "^3.4.0",
+    "bootstrap": "^3.3.6",
+    "ace-builds": "^1.2.2",
+    "@types/knockout": "^3.4.0"
+  },
+  "devDependencies": {}
+}
