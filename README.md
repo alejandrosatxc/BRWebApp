@@ -1,5 +1,4 @@
 # BRWebApp
-## Bell Ripper's legal document automation software
 
 ### This is the repository for the Bell Ripper's legal document automation software.
 
