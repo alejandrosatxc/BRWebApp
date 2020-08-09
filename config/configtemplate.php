@@ -1,18 +1,21 @@
 <?php
-$GLOBALS['CONFIG']['db_host'] = ''; #Database location
-$GLOBALS['CONFIG']['db_user'] = ''; 
+
+#THIS FILE MUST BE COPIED AND RENAMED TO config.php THEN PLACED IN THE ROOT DIR OF WEBSITE
+//MySql database credentials
+$GLOBALS['CONFIG']['db_host'] = '';
+$GLOBALS['CONFIG']['db_user'] = '';
 $GLOBALS['CONFIG']['db_pass'] = '';
-$GLOBALS['CONFIG']['db_database'] = ''; #bellripper_export
+$GLOBALS['CONFIG']['db_database'] = 'bellripper_export';
 
 $GLOBALS['db_handle'] = '';
 $GLOBALS['errored'] = 0;
 $GLOBALS['debug'] = 1;
 $GLOBALS['salt'] = 'AL3x9442y2oUYqR32n2pr5';
 
-$GLOBALS['CONFIG']['from_email'] = ''; #sending email account
-$GLOBALS['CONFIG']['from_emailname'] = '';
-$GLOBALS['CONFIG']['admin_email'] = '';
-$GLOBALS['CONFIG']['web_root'] = ''; #IP Address of machines
+$GLOBALS['CONFIG']['from_email'] = ''; #email account sending automated messages
+$GLOBALS['CONFIG']['from_emailname'] = 'Bell Ripper Portal';
+$GLOBALS['CONFIG']['admin_email'] = 'admin@bellripper.com';
+$GLOBALS['CONFIG']['web_root'] = ''; #IP address of local machine
 
 $GLOBALS['CONFIG']['stripe_token_uri'] = 'https://connect.stripe.com/oauth/token';
 $GLOBALS['CONFIG']['stripe_authorize_uri'] ='https://connect.stripe.com/oauth/authorize';
