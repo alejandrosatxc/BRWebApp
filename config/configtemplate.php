@@ -1,4 +1,5 @@
 <?php
+#THIS FILE MUST BE COPIED AND RENAMED TO config.php THEN PLACED IN THE ROOT DIR OF WEBSITE
 //MySql database credentials
 $GLOBALS['CONFIG']['db_host'] = '';
 $GLOBALS['CONFIG']['db_user'] = '';
