@@ -1,7 +1,8 @@
 <?php
-$GLOBALS['CONFIG']['db_host'] = 'ls-f65dab6a33dc86bd6002f263b9faac23f5cda71f.cdksfpkvc3kz.us-east-1.rds.amazonaws.com';
-$GLOBALS['CONFIG']['db_user'] = 'dbmasteruser';
-$GLOBALS['CONFIG']['db_pass'] = 'AlphaZulu09!';
+//MySql database credentials
+$GLOBALS['CONFIG']['db_host'] = '';
+$GLOBALS['CONFIG']['db_user'] = '';
+$GLOBALS['CONFIG']['db_pass'] = '';
 $GLOBALS['CONFIG']['db_database'] = 'bellripper_export';
 
 $GLOBALS['db_handle'] = '';
@@ -9,10 +10,10 @@ $GLOBALS['errored'] = 0;
 $GLOBALS['debug'] = 1;
 $GLOBALS['salt'] = 'AL3x9442y2oUYqR32n2pr5';
 
-$GLOBALS['CONFIG']['from_email'] = 'online@bellripper.com'; #sending email account
+$GLOBALS['CONFIG']['from_email'] = ''; #email account sending automated messages
 $GLOBALS['CONFIG']['from_emailname'] = 'Bell Ripper Portal';
 $GLOBALS['CONFIG']['admin_email'] = 'admin@bellripper.com';
-$GLOBALS['CONFIG']['web_root'] = 'http://3.218.236.89/'; #address of aws instance
+$GLOBALS['CONFIG']['web_root'] = ''; #IP address of local machine
 
 $GLOBALS['CONFIG']['stripe_token_uri'] = 'https://connect.stripe.com/oauth/token';
 $GLOBALS['CONFIG']['stripe_authorize_uri'] ='https://connect.stripe.com/oauth/authorize';
