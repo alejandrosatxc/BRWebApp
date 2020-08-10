@@ -73,7 +73,7 @@ require('header.php');
 			<?php } ?>
 			<div class="col-sm-5 boxed boxed--border">
 				<h3>
-					TESTSETSETSETSET
+					User Portal
 				</h3>
 				The User Portal allows you to fill out forms so that your documents may be generated
 				for review by an attorney. The forms will be available to fill out at your leisure and will
