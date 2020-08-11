@@ -2294,7 +2294,7 @@ function form_edit()
 											<div class="row" style="margin-top: 10px;">
 												<div class="col-xs-12">
 													<label>Survey (in <a href="http://json.org" target="_blank">JSON</a> format)</label>
-													<textarea name="survey" placeholder="Form JSON" maxlength="100000" style="height: 200px; font-family: monospace; font-size: 14px;"><?=json_encode(json_decode($arrForm['survey']), JSON_PRETTY_PRINT); ?></textarea>
+													<textarea name="survey" placeholder="Form JSON" maxlength="200000" style="height: 200px; font-family: monospace; font-size: 14px;"><?=json_encode(json_decode($arrForm['survey']), JSON_PRETTY_PRINT); ?></textarea>
 												</div>
 											</div>
 
