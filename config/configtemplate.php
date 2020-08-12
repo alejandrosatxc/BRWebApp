@@ -91,7 +91,14 @@ if ($_GET['a'] == 'activate') {
 		$dbresult = db_execute('select userid from users where userid=' . $_GET['userid'] . ' and emailverifycode="' . $_GET['code'] . '"');
 		if ($dbresult) {
 			list($userid) = mysqli_fetch_row($dbresult);
-			db_execute('update users set emailverifycode=NULL where userid=' . $_GET['userid']);
+                        db_execute('update users set emailverifycode=NULL where userid=' . $_GET['userid']);
+                        //Add Intake to usersurveys when email is activated
+			$dbresult = db_execute('select 1 from usersurveys where userid=' . $_GET['userid'] . ' and surveyid = 1 and active = 1');
+                    	if ($dbresult) {
+                            if (!mysqli_num_rows($dbresult)) {
+                                db_execute('insert into usersurveys(userid,surveyid,paid,status,startdate,active) values(' . $_GET['userid'] . ',1,1,0,NOW(),1)');
+                            }
+                        }
 			$activation_successful = 1;
 		} else {
 			showErrorPage('There was an error processing your request.  Please try again later.');
