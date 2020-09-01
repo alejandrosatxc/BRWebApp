@@ -2673,6 +2673,7 @@ function usurvey_finalize()
                     if ($dbresult && mysqli_num_rows($dbresult)) {
                         // all variables possible for use in this template will be loaded into $vars
                         $vars = array();
+                        
 
                         // load user information into $vars
                         $arrUser = mysqli_fetch_assoc($dbresult);
@@ -2722,7 +2723,6 @@ function usurvey_finalize()
                                 // copy template
                                 db_execute('insert into userdocuments(userid,surveyid,name,status,createdate) values(' . $userid . ',' . $surveyid . ',"' . escape($template['name']) . '",0,NOW())');
                                 $userdocumentid = db_insert_id();
-//TODO this is where the .docx is appended to each file name before going in the database could change the name of the dirs to have .docx behind them
                                 db_execute('update userdocuments set filename="document_' . $userdocumentid . '.docx" where udocumentid=' . $userdocumentid);
                                 $clientdir = 'clientfiles/document_' . $userdocumentid;
                                 $mkdirres = mkdir($clientdir);
@@ -2898,7 +2898,15 @@ function usurvey_finalize()
                                 $compiledcontents = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
                                 $compiledcontents .= $doc;
 				$compiledcontents = preg_replace('/\x{feff}/u', '', $compiledcontents);
-				file_put_contents($clientdir . '/word/document.xml', $compiledcontents);
+                                file_put_contents($clientdir . '/word/document.xml', $compiledcontents);
+                                //send JSON object of vars to a python file
+                                $xmlfiles = array();
+                                $xrc = exec('ls ' . $clientdir . '/word/' . ' | grep "header\|footer"', $xmlfiles);
+                                $jvars = json_encode($vars);
+                                $jvars = str_replace("\"", "\\\"", $jvars);
+                                $jvars = str_replace(" ", "\\ ", $jvars);
+                                $prc = exec('python3 autofill.py ' . $clientdir . '/word/ ' . $jvars . ' ' . json_encode($xmlfiles));
+
 				//Remember this working dir
 				$cwd = getcwd();
                                 chdir('clientfiles/document_' . $userdocumentid);
