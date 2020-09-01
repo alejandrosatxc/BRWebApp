@@ -2899,12 +2899,20 @@ function usurvey_finalize()
                                 $compiledcontents .= $doc;
 				$compiledcontents = preg_replace('/\x{feff}/u', '', $compiledcontents);
                                 file_put_contents($clientdir . '/word/document.xml', $compiledcontents);
-                                //send JSON object of vars to a python file
+
+                                //Hand off control to a python file for parsing header and footer .xml files in the .docx
+
+                                //grep for header and footer .xml files in .docx /word/ directory
                                 $xmlfiles = array();
                                 $xrc = exec('ls ' . $clientdir . '/word/' . ' | grep "header\|footer"', $xmlfiles);
+                                
+                                //prep $vars array for transport to python script. Encode to Json, and espace special characters for the shell
                                 $jvars = json_encode($vars);
                                 $jvars = str_replace("\"", "\\\"", $jvars);
                                 $jvars = str_replace(" ", "\\ ", $jvars);
+
+                                //run external python script
+                                //TODO IMPORTANT THIS MAY CAUSE A RACE CONDITION
                                 $prc = exec('python3 autofill.py ' . $clientdir . '/word/ ' . $jvars . ' ' . json_encode($xmlfiles));
 
 				//Remember this working dir
