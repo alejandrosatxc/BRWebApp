@@ -253,7 +253,9 @@ require('../header.php');
 					<button id="btnFinalize" class="btn btn--primary type--uppercase" type="submit">Finalize</button>
 					<input type="hidden" id="usurveyid" value="0">
 					<input type="hidden" id="clientview" value="0">
-				</div>
+                                </div>
+                                <!--- surveyDetails is where some data about the user will be loaded -->
+                                <div id="surveyHeader" style="border-bottom: 1px solid rgba(0,0,0,0.2); margin-bottom: 10px; padding-bottom: 10px;"></div>
 				<div id="surveyElement" class="divSurvey"></div>
 				<div id="surveyResult"></div>
 			</div>
@@ -652,9 +654,6 @@ require('../header.php');
 </div>
 
 <?php require('../footer.php');
-
-
-
 
 function list_admins()
 {
@@ -2377,10 +2376,11 @@ function client_edit()
 
 											<div class="col-sm-12">
 												<div class="input-checkbox input-checkbox--switch">
-													<?$ischecked = '';
-                if ($arrUser['active']) {
-                    $ischecked = ' checked';
-                } ?>
+                                                                                                        <?php
+                                                                                                        $ischecked = '';
+                                                                                                        if ($arrUser['active']) {
+                                                                                                            $ischecked = ' checked';
+                                                                                                        } ?>
 													<input type="checkbox" name="account_active" <?=$ischecked; ?> />
 													<label for="account_active"></label>
 												</div>
@@ -2986,13 +2986,24 @@ function usurvey_save()
                         }
                     }
                 } else {
+                    //Here is where we handle logic pertaining to completing an intake survey
                     db_execute('update usersurveys set data="' . escape($_POST['data']) . '",finaldate=NOW(),status=2 where usurveyid=' . $_POST['usurveyid']);
-
+                    
                     $json['isintake'] = '1';
                     // if this is the intake form and the user has another survey pending finalization, load it
                     if ($GLOBALS['USER']['finalize_usurveyid']) {
                         $json['finalize_usurveyid'] = $GLOBALS['USER']['finalize_usurveyid'];
                     }
+                    //TODO Create an email template to alert ANA when a user has completed the intake survey)
+                    ob_start();
+                    require('../email_templates/notify_intakecomplete_email.php');
+                    $html = ob_get_clean();
+
+                    sendEmail('alejandro@satxconsultants.com', 'A Client has completed an intake form', $html);
+                    //Administer an "Assign Attorney form" to Ana
+                    $intakeid = '{"header" : {"First Name" : "'. $GLOBALS['USER']['first_name'] . '", "Last Name" : "' . $GLOBALS['USER']['last_name'] . '", "usid" : ' . $_POST['usurveyid'] . '} }'; //Create a header object with data we want to display in a survey
+                    db_execute('insert into usersurveys(userid,surveyid,paid,status,startdate,active,data) values(7,9,1,0,NOW(),1,\'' . $intakeid .'\')');
+
                 }
             } else {
                 $json['error'] = 'Invalid form selected.';
@@ -3236,6 +3247,7 @@ function getSurvey()
     $json['survey'] = '';
     $json['data'] = '';
     $json['name'] = '';
+    $json['header'] = '';
 
     ob_start();
     if (isset($_POST['usurveyid']) && preg_match('/^[0-9]{1,18}$/', $_POST['usurveyid'])) {
@@ -3259,6 +3271,9 @@ function getSurvey()
                 $json['name'] = $row['name'];
                 $json['survey'] = $row['survey'];
                 $json['data'] = $row['data'];
+
+
+
             } else {
                 $json['error'] = 'Invalid form selected.';
             }
