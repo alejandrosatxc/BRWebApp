@@ -245,6 +245,7 @@ function prepareSurveyView(usurveyid,clientview,showintake,showreview) {
 	$("#surveyResult").removeClass("divloading");
 	$("#surveyNeedIntake").hide();
 	$("#surveyReview").hide();
+        $("#surveyHeader").hide();
 	$("#surveyIntakeComplete").hide();
 	if (showintake) {
 		$("#surveyNeedIntake").show();
@@ -632,6 +633,17 @@ function loadSurvey(surveytitle,surveyjson,data) {
 	window.survey = new Survey.Model(json);
 	if (data) {
 		window.survey.data = jQuery.parseJSON(data);
+                //if a header exists
+                if (window.survey.data.header) {
+                    var $surveyHeader = $('#surveyHeader');
+                    $surveyHeader.prepend('<ul id="headerData"></ul>');
+                    var $headerData = $('#headerData')
+                    $.each(window.survey.data.header, function (key, value) {
+                        $headerData.prepend('<li>' + key + ' : ' + value + '</li>')
+                    })
+                    $surveyHeader.show();
+
+                }
 	}
 
 	$("#surveyElement").Survey({
