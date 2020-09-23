@@ -2652,6 +2652,126 @@ function admin_save()
     exit;
 }
 
+function load_template_variables($userid, $surveyid, $jsonSurveyData, $lawyerid) 
+{
+    $vars = array();
+    //Decide what data is going to feed into the template
+    
+    //Checks will be needed for if it's an assign attorney form, or other docs
+    
+    //Check if user is an administrator submitting an attorney form (surveyid=9)
+    if($GLOBALS['USER']['accesslevel'] >= 5 && $surveyid == 8) 
+    {
+        //load attorney form answers
+        if($jsonSurveyData)
+        {
+            $attorneyFormData = json_decode($jsonSurveyData, true);
+            load_varArray($vars, $attorneyFormData);
+        }
+        
+        //Look in this survey's header to find an associated intake id
+        //$usurveyid = $surveyData['header']['usurveyid'];
+        //$uid = $surveyData['header']['userid'];
+
+        //load corressponding users intake answers
+        $query = <<<SQL
+        select data
+        from usersurveys
+        where usurveyid={$attorneyFormData['header']['usurveyid']}
+        and userid={$attorneyFormData['header']['userid']}
+        SQL;
+            
+        //$dbresult_intake = db_execute('select data from usersurveys where usurveyid=' . $usurveyid . ' and userid=' . $uid);
+
+        $dbresult_intake = db_execute($query);
+        if($dbresult_intake && mysqli_num_rows($dbresult_intake)) 
+        {
+            list($intakeData) = mysqli_fetch_row($dbresult_intake);
+            $intakeData = json_decode($intakeData);
+            load_varArray($vars, $intakeData, 'intake.');
+        }
+        
+        //load corressponding users information
+        
+        $query = <<<SQL
+        select *
+        from users
+        where userid={$attorneyFormData['header']['userid']}
+        SQL;
+
+        $dbresult_userData = db_execute($query);
+        if($dbresult_userData && mysqli_num_rows($dbresult_userData))
+        {
+            $userData = mysqli_fetch_assoc($dbresult_userData);
+            load_varArray($vars, $userData, "user.");
+        }
+
+        //load responsible attorney information
+        if($attorneyFormData['res_attorney'])
+        {
+             $dbresult = db_execute('select first_name,last_name,company,attorney_phone,attorney_email from users where userid=' . $attorneyFormData['res_attorney']);
+             if ($dbresult && mysqli_num_rows($dbresult))
+             {
+                $attorneyData = mysqli_fetch_assoc($dbresult);
+                load_varArray($vars, $attorneyData);
+            }
+        }
+    }
+    else
+    {
+        //It's a user submitting any other survey
+        
+        //load user information into $vars
+        $dbresult = db_execute('select * from users where userid=' . $userid);
+        $userData = mysqli_fetch_assoc($dbresult);
+        load_varArray($userData, 'user.');
+
+        //load survey answrs ito $vars
+        if($jsonSurveyData)
+        {
+            $surveyData = json_decode($jsonSurveyData);
+        }
+
+        //load intake answers into $vars
+        $dbresult_intake = db_execute('select data from usersurveys where userid=' . $GLOBALS['USER']['userid'] . ' and surveyid=1 and status=2');
+        if ($dbresult_intake && mysqli_num_rows($dbresult_intake)) 
+        {
+            list($intakedata) = mysqli_fetch_row($dbresult_intake);
+            $arrData = json_decode($intakedata);
+            foreach ($arrData as $key => $val) 
+            {
+                $vars['intake.' . $key] = $val;
+            }
+        }
+
+        //load attorney info $vars
+        if($lawyerid)
+        {
+            $dbresult = db_execute('select attorney_firstname,attorney_lastname,attorney_company,attorney_phone,attorney_email from users where userid=' . $lawyerid);
+            if ($dbresult && mysqli_num_rows($dbresult))
+            {
+               $attorneyData = mysqli_fetch_assoc($dbresult);
+               load_varArray($attorneyData);
+            }
+        }
+    }
+
+    // load current date into $vars
+    $vars['date.year'] = date('Y');
+    $vars['date.month'] = date('m');
+    $vars['date.day'] = date('d');
+    
+    return $vars;
+}
+
+function load_varArray(&$vars, $data, $prepend='')
+{
+    foreach($data as $key => $val)
+    {
+        $vars[$prepend.$key] = $val;
+    }
+}
+
 function usurvey_finalize()
 {
     $json = array();
@@ -2661,20 +2781,42 @@ function usurvey_finalize()
     if (!isset($_POST['usurveyid']) || !preg_match('/^[0-9]{1,18}$/', $_POST['usurveyid'])) {
         $json['error'] = 'Invalid form selected.';
     } else {
+
+        $query = <<<SQL
+        update users
+        set finalize_usurveyid = NULL
+        where userid = {$GLOBALS['USER']['userid']}
+        SQL;
+
         if ($GLOBALS['USER']['finalize_usurveyid'] == $_POST['usurveyid']) {
             db_execute('update users set finalize_usurveyid = NULL where userid=' . $GLOBALS['USER']['userid']);
         }
+
+        $query = <<<SQL
+        select us.userid, us.surveyid, us.data, s.lawyerid
+        from usersurveys us left join surveys s 
+        on us.surveyid=s.surveyid
+        where us.usurveyid={$_POST['usurveyid']}
+        SQL;
+
         $dbresult = db_execute('select us.userid,us.surveyid,us.data,s.lawyerid from usersurveys us left join surveys s on us.surveyid=s.surveyid where us.usurveyid=' . $_POST['usurveyid']);
         if ($dbresult) {
             if (mysqli_num_rows($dbresult)) {
                 list($userid, $surveyid, $jsonSurveyData, $lawyerid) = mysqli_fetch_row($dbresult);
                 if ($GLOBALS['USER']['userid'] == $userid || $GLOBALS['USER']['accesslevel'] > 0) {
+
+                    $query = <<<SQL
+                    select *
+                    from users
+                    where userid = $userid
+                    SQL;
+                    
                     $dbresult = db_execute('select * from users where userid=' . $userid);
                     if ($dbresult && mysqli_num_rows($dbresult)) {
                         // all variables possible for use in this template will be loaded into $vars
-                        $vars = array();
+                        $vars = load_template_variables($userid, $surveyid, $jsonSurveyData, $lawyerid);
                         
-
+                        /*
                         // load user information into $vars
                         $arrUser = mysqli_fetch_assoc($dbresult);
                         foreach ($arrUser as $key => $val) {
@@ -2711,18 +2853,38 @@ function usurvey_finalize()
                             }
                         }
 
+                        
+
                         // load current date into $vars
                         $vars['date.year'] = date('Y');
                         $vars['date.month'] = date('m');
                         $vars['date.day'] = date('d');
+                         */
 
                         // loop through the templates for this survey
+                        $query = <<<SQL
+                        select templateid, name, file
+                        from templates where surveyid = $surveyid
+                        SQL;
+
                         $dbresult = db_execute('select templateid,name,file from templates where surveyid = ' . $surveyid);
                         if ($dbresult && mysqli_num_rows($dbresult)) {
                             while ($template = mysqli_fetch_assoc($dbresult)) {
                                 // copy template
+                                $query = <<<SQL
+                                insert into userdocuments( userid,  surveyid,                        name, staus, createdate)
+                                                   values($userid, $surveyid, escape({$template['name']}),     0,      NOW())
+                                SQL;
+
                                 db_execute('insert into userdocuments(userid,surveyid,name,status,createdate) values(' . $userid . ',' . $surveyid . ',"' . escape($template['name']) . '",0,NOW())');
                                 $userdocumentid = db_insert_id();
+
+                                $query = <<<SQL
+                                update userdocuments
+                                set filename = "document_$userdocumentid.docx"
+                                where udocumentid=$userdocumentid
+                                SQL;
+
                                 db_execute('update userdocuments set filename="document_' . $userdocumentid . '.docx" where udocumentid=' . $userdocumentid);
                                 $clientdir = 'clientfiles/document_' . $userdocumentid;
                                 $mkdirres = mkdir($clientdir);
@@ -2921,7 +3083,7 @@ function usurvey_finalize()
                                 // zip files to create .docx
                                 exec('zip -r ../document_' . $userdocumentid . '.docx *');
                                 // TODO commented out to help with debugging
-				unlink('/home/bitnami/htdocs/portal/' . $clientdir . '/word/document.php');
+//				unlink('/home/bitnami/htdocs/portal/' . $clientdir . '/word/document.php');
 
 				//Change back to working dir
 				chdir($cwd);
@@ -2952,6 +3114,7 @@ function usurvey_save()
     $json['loadusurveyid'] = '0';
     $json['finalize_usurveyid'] = '0';
     $json['isintake'] = '0';
+    $json['isassign'] = '0';
     $errors = array();
 
     if (!isset($_POST['data']) || !$_POST['data']) {
@@ -2969,8 +3132,25 @@ function usurvey_save()
         if ($dbresult) {
             if (mysqli_num_rows($dbresult)) {
                 list($surveyid) = mysqli_fetch_row($dbresult);
+                //If its an Assign Attorney form (9)
+                if($surveyid === '9')
+                {
+                    $json['isassign'] = '1';
+                    $formData = json_decode(escape($_POST["data"]), true);
+                    $assignee = $formData["assignee"];
+                    $data = json_encode($_POST['data']);
+//                    $data = '"' + $data + '"';
+                    
+                    $query = <<<SQL
+                    insert into 
+                    usersurveys(userid,surveyid,paid,status,startdate,active,data)
+                    values(7, 8, 1, 0, NOW(), 1, $data)
+                    SQL;
+                    db_execute($query);
 
-                if ($surveyid !== '1') {
+                } 
+                elseif ($surveyid !== '1') 
+                {
                     db_execute('update usersurveys set data="' . escape($_POST['data']) . '" where usurveyid=' . $_POST['usurveyid']);
 
                     // check if the user needs to fill out the intake survey before finalizing this one
@@ -2978,14 +3158,16 @@ function usurvey_save()
                     if ($dbresult) {
                         if (mysqli_num_rows($dbresult)) {
                             list($usurveyid, $finaldate) = mysqli_fetch_row($dbresult);
-                            if (!$finaldate) {
+                            if (!$finaldate && $GLOBALS['USER']['accesslevel'] < 5) {
                                 // the user needs to finalize their intake survey
                                 db_execute('update users set finalize_usurveyid = ' . $_POST['usurveyid'] . ' where userid=' . $GLOBALS['USER']['userid']);
                                 $json['loadusurveyid'] = "$usurveyid";
                             }
                         }
                     }
-                } else {
+                } 
+                else 
+                {
                     //Here is where we handle logic pertaining to completing an intake survey
                     db_execute('update usersurveys set data="' . escape($_POST['data']) . '",finaldate=NOW(),status=2 where usurveyid=' . $_POST['usurveyid']);
                     
@@ -3001,8 +3183,25 @@ function usurvey_save()
 
                     sendEmail('alejandro@satxconsultants.com', 'A Client has completed an intake form', $html);
                     //Administer an "Assign Attorney form" to Ana
-                    $intakeid = '{"header" : {"First Name" : "'. $GLOBALS['USER']['first_name'] . '", "Last Name" : "' . $GLOBALS['USER']['last_name'] . '", "usid" : ' . $_POST['usurveyid'] . '} }'; //Create a header object with data we want to display in a survey
-                    db_execute('insert into usersurveys(userid,surveyid,paid,status,startdate,active,data) values(7,9,1,0,NOW(),1,\'' . $intakeid .'\')');
+                    //Insert a surveyHeader into the assign attorney form
+                    $case = json_decode(escape($_POST['data']), true);
+                    $case = $case['case_type'];
+                    $surveyHeader = array(
+                        "header" => array(
+                            "Name" => $GLOBALS['USER']['first_name'] . " " . $GLOBALS['USER']['last_name'],
+                            "Email" => $GLOBALS['USER']['email'],
+                            "Case" => $case,
+                            "usurveyid" => $_POST['usurveyid'],
+                            "userid" => $GLOBALS['USER']['userid']
+                            //TODO add Case type/other to this header
+                        )
+                    );
+                    
+                    //$surveyHeader = '{"header" : {"Name" : "'. $GLOBALS['USER']['first_name'] . " " . $GLOBALS['USER']['last_name'] . '", "usid" : ' . $_POST['usurveyid'] . '} }'; //Create a header object with data we want to display in a survey
+                    $surveyHeader = json_encode($surveyHeader);
+                    // 7 = br+admin at bellripper
+                    // 9 = Assign Attorney form
+                    db_execute('insert into usersurveys(userid,surveyid,paid,status,startdate,active,data) values(7,9,1,0,NOW(),1,\'' . $surveyHeader .'\')');
 
                 }
             } else {
