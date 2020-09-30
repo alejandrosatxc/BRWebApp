@@ -1,9 +1,5 @@
 <?php 
-if($_GET["debug"] == 1) {
-    require_once('../config.php');
-} else {
-    require_once('config.php');
-}
+require_once('../config.php');
 if (!isset($userid)) {$userid = 'EXAMPLE';}
 if (!isset($emailcode)) {$emailcode = 'EXAMPLE';}
 ?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -467,9 +463,9 @@ if (!isset($emailcode)) {$emailcode = 'EXAMPLE';}
                                     <table border="0" cellpadding="0" cellspacing="0" width="100%" id="templateBody" style="-webkit-text-size-adjust: 100%;-ms-text-size-adjust: 100%;mso-table-lspace: 0pt;mso-table-rspace: 0pt;background-color: #F4F4F4;border-top: 1px solid #FFFFFF;border-bottom: 1px solid #CCCCCC;">
                                         <tr>
                                             <td valign="top" class="bodyContent" mc:edit="body_content" style="-webkit-text-size-adjust: 100%;-ms-text-size-adjust: 100%;mso-table-lspace: 0pt;mso-table-rspace: 0pt;color: #505050;font-family: Helvetica;font-size: 14px;line-height: 150%;padding-top: 20px;padding-right: 20px;padding-bottom: 20px;padding-left: 20px;text-align: left;">
-                                                <h2 style="display: block;font-family: Helvetica;font-size: 20px;font-style: normal;font-weight: bold;line-height: 100%;letter-spacing: normal;margin-top: 0;margin-right: 0;margin-bottom: 10px;margin-left: 0;text-align: left;color: #404040 !important;">Welcome to the Bell Ripper User Portal</h2>
-                                                <h4 style="display: block;font-family: Helvetica;font-size: 14px;font-style: italic;font-weight: normal;line-height: 100%;letter-spacing: normal;margin-top: 0;margin-right: 0;margin-bottom: 10px;margin-left: 0;text-align: left;color: #808080 !important;">Thank you for signing up with us.</h4>
-                                                Please click on the button to verify your email address and activate your account.
+                                                <h2 style="display: block;font-family: Helvetica;font-size: 20px;font-style: normal;font-weight: bold;line-height: 100%;letter-spacing: normal;margin-top: 0;margin-right: 0;margin-bottom: 10px;margin-left: 0;text-align: left;color: #404040 !important;">A Client, [firstname] [lastname] has completed an intake form</h2>
+                                                <h4 style="display: block;font-family: Helvetica;font-size: 14px;font-style: italic;font-weight: normal;line-height: 100%;letter-spacing: normal;margin-top: 0;margin-right: 0;margin-bottom: 10px;margin-left: 0;text-align: left;color: #808080 !important;">Review their intake and assign an attorney form to an attorney.</h4>
+                                                <a href="<?=$GLOBALS['CONFIG']['web_root'] . 'portal';?>">Log in</a> and go to My Forms and find the form that matches the first and last name of the client
                                                 <br/>
                                                 <br/>
                                                 <a href="<?=$GLOBALS['CONFIG']['web_root'] . 'link?A-' . $userid . '-' . $emailcode;?>" style="display: inline-block;padding: 6px 12px;margin-bottom: 0px;font-size: 14px;font-weight: 400;line-height: 1.42857;text-align: center;white-space: nowrap;vertical-align: middle;cursor: pointer;background-image: none;border: 1px solid transparent;border-radius: 4px;background-color: #C75746;border-color: #CEB38F;text-decoration: none;color: #FFF;margin-top: 10px;">Activate Account</a>

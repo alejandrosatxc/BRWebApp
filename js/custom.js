@@ -245,6 +245,7 @@ function prepareSurveyView(usurveyid,clientview,showintake,showreview) {
 	$("#surveyResult").removeClass("divloading");
 	$("#surveyNeedIntake").hide();
 	$("#surveyReview").hide();
+        $("#surveyHeader").html("");
         $("#surveyHeader").hide();
 	$("#surveyIntakeComplete").hide();
 	if (showintake) {
@@ -736,6 +737,7 @@ function saveForm(survey) {
 	$("#surveyWarning").hide();
 	$("#surveyNeedIntake").hide();
 	$("#surveyReview").hide();
+        $("#surveyHeader").hide();
 	$("#surveyResult").addClass("divloading");
 	window.scrollTo(0,0);
 
