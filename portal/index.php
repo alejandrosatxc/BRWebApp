@@ -2714,6 +2714,7 @@ function load_template_variables($userid, $surveyid, $lawyerid)
 
 function load_query_result(&$vars, $query, $prepend='') 
 {
+    $data['data'] = '';
     $dbresult = db_execute($query);
     if($dbresult && mysqli_num_rows($dbresult))
     {
@@ -3001,7 +3002,7 @@ function usurvey_finalize()
                             }
                         }
 
-                        if($GLOBALS['USER']['accesslevel'] > 5 && $surveyid == ATTORNEY_FORM) {
+                        if($GLOBALS['USER']['accesslevel'] >= 5 && $surveyid == ATTORNEY_FORM) {
                             review_document($clientdir);
                             $json['pdfpath'] = $clientdir . ".pdf";
                         }
