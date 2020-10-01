@@ -393,12 +393,12 @@ require('../header.php');
 								<select name="state">
 									<option value="">State</option>
 									<?php foreach ($GLOBALS['CONFIG']['US_States'] as $state => $val) {
-    echo '<option value="' . $val . '"';
-    if ($GLOBALS['USER']['state'] == $val) {
-        echo ' selected';
-    }
-    echo '">' . $state . '</option>';
-} ?>
+                                            echo '<option value="' . $val . '"';
+                                            if ($GLOBALS['USER']['state'] == $val) {
+                                                echo ' selected';
+                                            }
+                                            echo '">' . $state . '</option>';
+                                        } ?>
 								</select>
 							</div>
 						</div>
@@ -2494,17 +2494,17 @@ function client_edit()
 														<?php
                                                             // the intake form (survey id 1) gets assigned automatically when any other survey is assigned to a user (if they don't have an intake survey already).
                                                             $dbresult = db_execute('select surveyid,name from surveys where active = 1 and surveyid != 1 order by name');
-                if ($dbresult) {
-                    if (mysqli_num_rows($dbresult)) {
-                        while ($row = mysqli_fetch_assoc($dbresult)) {
-                            ?>
+                                                            if ($dbresult) {
+                                                                if (mysqli_num_rows($dbresult)) {
+                                                                    while ($row = mysqli_fetch_assoc($dbresult)) {
+                                                                        ?>
 																			<div class="input-checkbox" style="display: block;"><input type="checkbox" name="surveyids[]" id="surveyid_<?=$row['surveyid']; ?>" value="<?=$row['surveyid']; ?>"><label for="surveyid_<?=$row['surveyid']; ?>" style="display: inline-block !important;"></label><span style="position: relative; top: -10px;"><?=$row['name']; ?></span></div>
 																		<?php
-                        }
-                    } else {
-                        ?>[ No Forms Listed ]<?php
-                    }
-                } ?>
+                                                                    }
+                                                                } else {
+                                                                    ?>[ No Forms Listed ]<?php
+                                                                }
+                                                            } ?>
 <!--													</select>
 												</div>-->
 											</div>
@@ -2977,7 +2977,7 @@ function usurvey_finalize()
 
                                 //grep for header and footer .xml files in .docx /word/ directory
                                 $xmlfiles = array();
-                                $xrc = exec('ls ' . $clientdir . '/word/' . ' | grep "header\|footer"', $xmlfiles);//TODO Find PHP equivelant to this 
+                                $execreturncode = exec('ls ' . $clientdir . '/word/' . ' | grep "header\|footer"', $xmlfiles);//TODO Find PHP equivelant to this 
                                 
                                 //prep $vars array for transport to python script. Encode to Json, and espace special characters for the shell
                                 $jvars = json_encode($vars);
@@ -2986,7 +2986,7 @@ function usurvey_finalize()
 
                                 //run external python script
                                 //TODO IMPORTANT THIS MAY CAUSE A RACE CONDITION
-                                $prc = exec('python3 autofill.py ' . $clientdir . '/word/ ' . $jvars . ' ' . json_encode($xmlfiles));
+                                $pythonreturncode = exec('python3 autofill.py ' . $clientdir . '/word/ ' . $jvars . ' ' . json_encode($xmlfiles));
 
 				                //Remember this working dir
 				                $cwd = getcwd();
@@ -3000,7 +3000,13 @@ function usurvey_finalize()
 				                chdir($cwd);
                             }
                         }
+
+                        if($GLOBALS['USER']['accesslevel'] > 5 && $surveyid == ATTORNEY_FORM) {
+                            review_document($clientdir);
+                            $json['pdfpath'] = $clientdir . ".pdf";
+                        }
                         db_execute('update usersurveys set status=1,finaldate=NOW() where userid=' . $GLOBALS['USER']['userid'] . ' and usurveyid=' . $_POST['usurveyid']);
+                        //TODO If an admin submits an attorney form, they should review the result before finalizing
                     } else {
                         $json['error'] = 'There was an error processing your request.';
                     }
@@ -3017,6 +3023,12 @@ function usurvey_finalize()
     return json_encode($json);
 }
 
+function review_document($clientdir) {
+
+    //convert .docx into pdf
+    Gears\Pdf::convert($clientdir . '.docx', $clientdir . '.pdf');
+    //open new browser tab with pdf
+}
 
 function usurvey_save()
 {
@@ -3413,9 +3425,7 @@ function file_download($preview = 1)
                     // when previewing, remove the .docx and replace with .pdf
                     $filename = str_replace('.docx', '.pdf', $filename);
                 }
-		//TODO $filename contains the .docx extenstion, which causes it to not recognize the dir in the test
-		//TODO this line of code allows the file to be downloaded		
-		//$filename = str_replace('.docx', '', $filename);
+		        //$filename = str_replace('.docx', '', $filename);
 
                 $file = 'clientfiles/' . $filename;
 
