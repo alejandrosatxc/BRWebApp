@@ -3026,6 +3026,7 @@ function usurvey_finalize()
 
 function review_document($clientdir) {
 
+    require_once('../utils/pdf-master/src/Pdf.php');
     //convert .docx into pdf
     Gears\Pdf::convert($clientdir . '.docx', $clientdir . '.pdf');
     //open new browser tab with pdf

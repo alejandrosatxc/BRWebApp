@@ -719,6 +719,7 @@ $(document).on("click","#btnFinalize",function(e) {
 			if (objData["error"]) {
 				$("#surveyResult").removeClass("divloading");
 				showError(objData["error"]);
+			 
 			} else {
 				setTimeout(function() {
 					$("#surveyResult").removeClass("divloading");
@@ -726,6 +727,9 @@ $(document).on("click","#btnFinalize",function(e) {
 						$("#surveyResult").html("Your form has been submitted for review.");
 					} else {
 						$("#surveyResult").html("Client documents have been prepared.");
+						if(objData["pdfpath"]) {
+							window.open(objData["pdfpath"]);
+						}
 					}
 				},1000);
 			}
