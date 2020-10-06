@@ -2714,12 +2714,12 @@ function load_template_variables($userid, $surveyid, $lawyerid)
 
 function load_query_result(&$vars, $query, $prepend='') 
 {
-    $data['data'] = '';
     $dbresult = db_execute($query);
     if($dbresult && mysqli_num_rows($dbresult))
     {
         $data = mysqli_fetch_assoc($dbresult);
         //This assumes that only the survey 'data' column was grabbed
+        if(!isset($data['data'])) { $data['data'] = ''; }
         if(isJson($data['data'])) {
             $data = json_decode($data['data']);
         } 
@@ -2733,6 +2733,9 @@ function load_query_result(&$vars, $query, $prepend='')
 
 function isJson($string)
 {
+    if($string === '') {
+        return false;
+    }
     json_decode($string);
     return(json_last_error() == JSON_ERROR_NONE);
 }
@@ -3030,6 +3033,8 @@ function review_document($clientdir) {
     require('../vendor/autoload.php');
     Gears\Pdf::convert($clientdir . '.docx', $clientdir . '.pdf');
     //open new browser tab with pdf
+    //Create DB record
+
 }
 
 function usurvey_save()
@@ -3121,12 +3126,20 @@ function usurvey_save()
                         )
                     );
                     
-                    //$surveyHeader = '{"header" : {"Name" : "'. $GLOBALS['USER']['first_name'] . " " . $GLOBALS['USER']['last_name'] . '", "usid" : ' . $_POST['usurveyid'] . '} }'; //Create a header object with data we want to display in a survey
                     $surveyHeader = json_encode($surveyHeader);
                     // 7 = br+admin at bellripper
                     // 9 = Assign Attorney form
-                    db_execute('insert into usersurveys(userid,surveyid,paid,status,startdate,active,data) values(7,9,1,0,NOW(),1,\'' . $surveyHeader .'\')');
+                    $intakeAttorney = INTAKE_ATTORNEY;
+                    $assignAttoneyForm = ASSIGN_ATTORNEY_FORM;
 
+                    $query = <<<SQL
+                    insert into
+                    usersurveys(userid         , surveyid             , paid , status , startdate , active, data           )
+                         values($intakeAttorney, $assignAttoneyForm   , 1    , 0      , NOW()     , 1     , '$surveyHeader')
+                    SQL;
+
+                    //db_execute('insert into usersurveys(userid,surveyid,paid,status,startdate,active,data) values(7,9,1,0,NOW(),1,\'' . $surveyHeader .'\')');
+                    db_execute($query);
                 }
             } else {
                 $json['error'] = 'Invalid form selected.';
