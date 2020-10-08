@@ -245,6 +245,8 @@ function prepareSurveyView(usurveyid,clientview,showintake,showreview) {
 	$("#surveyResult").removeClass("divloading");
 	$("#surveyNeedIntake").hide();
 	$("#surveyReview").hide();
+        $("#surveyHeader").html("");
+        $("#surveyHeader").hide();
 	$("#surveyIntakeComplete").hide();
 	if (showintake) {
 		$("#surveyNeedIntake").show();
@@ -632,6 +634,17 @@ function loadSurvey(surveytitle,surveyjson,data) {
 	window.survey = new Survey.Model(json);
 	if (data) {
 		window.survey.data = jQuery.parseJSON(data);
+                //if a header exists
+                if (window.survey.data.header) {
+                    var $surveyHeader = $('#surveyHeader');
+                    $surveyHeader.prepend('<ul id="headerData"></ul>');
+                    var $headerData = $('#headerData')
+                    $.each(window.survey.data.header, function (key, value) {
+                        $headerData.prepend('<li>' + key + ' : ' + value + '</li>')
+                    })
+                    $surveyHeader.show();
+
+                }
 	}
 
 	$("#surveyElement").Survey({
@@ -706,6 +719,7 @@ $(document).on("click","#btnFinalize",function(e) {
 			if (objData["error"]) {
 				$("#surveyResult").removeClass("divloading");
 				showError(objData["error"]);
+			 
 			} else {
 				setTimeout(function() {
 					$("#surveyResult").removeClass("divloading");
@@ -713,6 +727,9 @@ $(document).on("click","#btnFinalize",function(e) {
 						$("#surveyResult").html("Your form has been submitted for review.");
 					} else {
 						$("#surveyResult").html("Client documents have been prepared.");
+						if(objData["pdfpath"]) {
+							window.open(objData["pdfpath"]);
+						}
 					}
 				},1000);
 			}
@@ -724,6 +741,7 @@ function saveForm(survey) {
 	$("#surveyWarning").hide();
 	$("#surveyNeedIntake").hide();
 	$("#surveyReview").hide();
+        $("#surveyHeader").hide();
 	$("#surveyResult").addClass("divloading");
 	window.scrollTo(0,0);
 

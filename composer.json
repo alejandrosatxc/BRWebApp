@@ -1,0 +1,10 @@
+{
+    "require": {
+        "gears/pdf": "*",
+        "monolog/monolog": "1.0.*"
+    },
+    "scripts": {
+		"post-install-cmd": ["PhantomInstaller\\Installer::installPhantomJS"],
+		"post-update-cmd": ["PhantomInstaller\\Installer::installPhantomJS"]
+	}
+}
