@@ -1847,7 +1847,7 @@ function list_mydocuments()
                         ?><label class="label label-danger">FINAL</label><?php
                     } ?>
 			</td><td>
-				<?php if (file_exists('clientfiles/document_' . $row['udocumentid'] . '.pdf')) { ?>
+				<?php if (file_exists('clientfiles/document_' . ($row['udocumentid'] - 1) . '.pdf')) { //TODO This check needs to consider a different filename scheme ?> 
 					<a data-docid="<?=$row['udocumentid'];?>" class="btn-preview btn btn--xs btn--primary"><i class="fa fa-download"></i></a>
 				<?php } ?>
 			</td></tr><?php
@@ -2798,10 +2798,11 @@ function usurvey_finalize()
                         if ($dbresult && mysqli_num_rows($dbresult)) {
                             while ($template = mysqli_fetch_assoc($dbresult)) {
                                 // copy template
+                                $templateName = $template['name'];
                                 $query = <<<SQL
                                 insert into 
-                                userdocuments( userid,  surveyid,                        name, staus, createdate)
-                                       values($userid, $surveyid, escape({$template['name']}),     0,      NOW())
+                                userdocuments(userid , surveyid  , name            , status, createdate)
+                                       values($userid, $surveyid , "$templateName" , 0     , NOW()     )
                                 SQL;
 
                                 db_execute($query);
@@ -2992,23 +2993,27 @@ function usurvey_finalize()
                                 //TODO IMPORTANT THIS MAY CAUSE A RACE CONDITION
                                 $pythonreturncode = exec('python3 autofill.py ' . $clientdir . '/word/ ' . $jvars . ' ' . json_encode($xmlfiles));
 
+                                //TODO Check the above return code for success
+
 				                //Remember this working dir
 				                $cwd = getcwd();
                                 chdir('clientfiles/document_' . $userdocumentid);
                                 // zip files to create .docx
                                 exec('zip -r ../document_' . $userdocumentid . '.docx *'); 
                                 // TODO commented out to help with debugging
-                                //unlink('/home/bitnami/htdocs/portal/' . $clientdir . '/word/document.php');
+                                unlink('/home/bitnami/htdocs/portal/' . $clientdir . '/word/document.php');
 
 				                //Change back to working dir
-				                chdir($cwd);
+                                chdir($cwd);
+                                
+                                if($GLOBALS['USER']['accesslevel'] >= 5 && $surveyid == ATTORNEY_FORM) {
+                                    review_document($clientdir, $template, $vars['header']['userid']);
+                                    $json['pdfpath'] = $clientdir . ".pdf";
+                                }
                             }
                         }
 
-                        if($GLOBALS['USER']['accesslevel'] >= 5 && $surveyid == ATTORNEY_FORM) {
-                            review_document($clientdir);
-                            $json['pdfpath'] = $clientdir . ".pdf";
-                        }
+                        
                         db_execute('update usersurveys set status=1,finaldate=NOW() where userid=' . $GLOBALS['USER']['userid'] . ' and usurveyid=' . $_POST['usurveyid']);
                         //TODO If an admin submits an attorney form, they should review the result before finalizing
                     } else {
@@ -3027,13 +3032,41 @@ function usurvey_finalize()
     return json_encode($json);
 }
 
-function review_document($clientdir) {
+function review_document($clientdir, $template, $userid) {
+
+    $query = <<<SQL
+    select first_name, last_name
+    from users where userid = $userid
+    SQL;
+
+    $db_result = db_execute($query);
+    $user = mysqli_fetch_assoc($db_result);
+    $surveyid = ATTORNEY_FORM;
+    //$pdfFilename = $template['name'] . '_' . $user['first_name']. '_' . $user['last_name']. '_' . $userid . '.pdf';
+    $pdfFilename = $clientdir . '.pdf'; 
+    $templateName = $template['name'];
 
     //convert .docx into pdf
     require('../vendor/autoload.php');
-    Gears\Pdf::convert($clientdir . '.docx', $clientdir . '.pdf');
-    //open new browser tab with pdf
+    Gears\Pdf::convert($clientdir . '.docx', $pdfFilename);
+
+    //TODO Check if file creation was successful
+    if(!file_exists($pdfFilename)) {
+        return -1;
+    }
     //Create DB record
+    $pdfFilename = basename($pdfFilename);
+
+    $query = <<<SQL
+    insert into
+    userdocuments(userid , surveyid  , name            , filename        , status, createdate)
+           values($userid, $surveyid , "$templateName" , "$pdfFilename"  , 1     , NOW()     ) 
+    SQL;
+    
+    db_execute($query);
+
+    //open new browser tab with pdf
+
 
 }
 
