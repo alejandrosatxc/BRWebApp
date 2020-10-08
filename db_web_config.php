@@ -1,18 +1,18 @@
 <?php
-$GLOBALS['CONFIG']['db_host'] = 'localhost';
-$GLOBALS['CONFIG']['db_user'] = 'root';
-$GLOBALS['CONFIG']['db_pass'] = 'miHRlH4xL5SR';
-$GLOBALS['CONFIG']['db_database'] = 'bellripper_test';
+$GLOBALS['CONFIG']['db_host'] = '';
+$GLOBALS['CONFIG']['db_user'] = '';
+$GLOBALS['CONFIG']['db_pass'] = '';
+$GLOBALS['CONFIG']['db_database'] = '';
 
 $GLOBALS['db_handle'] = '';
 $GLOBALS['errored'] = 0;
 $GLOBALS['debug'] = 1;
 $GLOBALS['salt'] = 'AL3x9442y2oUYqR32n2pr5';
 
-$GLOBALS['CONFIG']['from_email'] = 'online@bellripper.com'; #sending email account
-$GLOBALS['CONFIG']['from_emailname'] = 'Bell Ripper Portal';
-$GLOBALS['CONFIG']['admin_email'] = 'admin@bellripper.com';
-$GLOBALS['CONFIG']['web_root'] = 'http://52.207.90.190/'; #address of aws instance
+$GLOBALS['CONFIG']['from_email'] = ''; #sending email account
+$GLOBALS['CONFIG']['from_emailname'] = '';
+$GLOBALS['CONFIG']['admin_email'] = '';
+$GLOBALS['CONFIG']['web_root'] = ''; #address of aws instance
 
 $GLOBALS['CONFIG']['stripe_token_uri'] = 'https://connect.stripe.com/oauth/token';
 $GLOBALS['CONFIG']['stripe_authorize_uri'] ='https://connect.stripe.com/oauth/authorize';
